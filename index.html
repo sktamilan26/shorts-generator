@@ -5,68 +5,59 @@
 <title>Shorts Generator SaaS</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Firebase (COMPAT – stable) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
 <style>
 body{
   margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  background:linear-gradient(135deg,#020617,#0f172a);
-  color:white;
+  min-height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
-  min-height:100vh;
+  background:linear-gradient(135deg,#020617,#0f172a);
+  font-family:Arial,Helvetica,sans-serif;
+  color:white;
 }
 .card{
-  width:420px;
+  width:360px;
   background:#020617;
-  padding:22px;
+  padding:28px;
   border-radius:18px;
-  box-shadow:0 20px 40px rgba(0,0,0,.6);
+  box-shadow:0 30px 60px rgba(0,0,0,.6);
 }
-h2{margin:0 0 10px}
-p{color:#94a3b8;font-size:13px}
-input,select,button{
+h2{text-align:center;margin:0}
+p{text-align:center;color:#94a3b8;font-size:14px}
+
+input{
   width:100%;
   padding:12px;
-  margin-top:10px;
-  border-radius:10px;
-  border:none;
-  font-size:15px;
-}
-input,select{
-  background:#020617;
+  margin-top:12px;
+  border-radius:8px;
   border:1px solid #1e293b;
+  background:#020617;
   color:white;
 }
 button{
+  width:100%;
+  padding:12px;
+  margin-top:16px;
+  border:none;
+  border-radius:8px;
   background:#22c55e;
-  font-weight:800;
+  font-weight:bold;
   cursor:pointer;
 }
-button.alt{
+.alt{
   background:transparent;
   border:1px solid #22c55e;
   color:#22c55e;
 }
+#error{color:#f87171;font-size:13px;margin-top:8px;text-align:center}
 .hidden{display:none}
+
 .out{
-  background:#020617;
-  padding:12px;
+  background:#0f172a;
+  padding:14px;
   border-radius:12px;
-  margin-top:12px;
-  border:1px solid #1e293b;
-}
-.badge{
-  background:#22c55e;
-  color:black;
-  padding:4px 10px;
-  border-radius:999px;
-  font-size:12px;
-  display:inline-block;
+  margin-top:14px;
 }
 </style>
 </head>
@@ -75,100 +66,101 @@ button.alt{
 
 <!-- AUTH -->
 <div class="card" id="auth">
-<span class="badge">Free • Premium Ready</span>
-<h2>🔐 Login / Signup</h2>
-<p>Create account to generate viral Shorts</p>
+<h2 id="title">Login</h2>
+<p id="sub">Welcome back</p>
 
 <input id="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
+<div id="error"></div>
 
-<button onclick="signup()">Create Account</button>
-<button class="alt" onclick="login()">Login</button>
+<button id="mainBtn" onclick="login()">Login</button>
+<button class="alt" onclick="toggle()">Create Account</button>
 </div>
 
 <!-- APP -->
 <div class="card hidden" id="app">
-<span class="badge">🎬 Generator</span>
-<h2>YouTube Shorts</h2>
+<h2>🎬 Shorts Generator</h2>
+<p>Premium SaaS Ready 🔥</p>
 
-<select id="topic">
-<option value="">Select Topic</option>
-<option value="school">School Meme</option>
-<option value="office">Office Life</option>
-<option value="friends">Friends Group</option>
-<option value="family">Family Comedy</option>
-<option value="trending">Trending Meme</option>
+<select id="topic" style="margin-top:14px;width:100%;padding:12px;border-radius:8px">
+  <option value="">Select Topic</option>
+  <option value="school">School Meme</option>
+  <option value="office">Office Life</option>
+  <option value="friends">Friends</option>
 </select>
 
 <button onclick="generate()">Generate</button>
 
 <div class="out">
-<p id="title">—</p>
-<p id="tags">—</p>
-<p id="desc">—</p>
+<p id="result">—</p>
 </div>
 
-<button class="alt" onclick="logout()">Logout</button>
+<button style="background:#ef4444" onclick="logout()">Logout</button>
 </div>
 
-<script>
-/* ✅ REPLACE WITH YOUR REAL FIREBASE CONFIG */
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+/* 🔥 YOUR FIREBASE CONFIG (VALID) */
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyA70iPdTp4NNUFjBRYqZxzPxmp9dl0YCgw",
+  authDomain: "shorts-generator-93a89.firebaseapp.com",
+  projectId: "shorts-generator-93a89",
+  appId: "1:213303902338:web:b8463b16b4a4f99b53f49b"
 };
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-const authDiv = document.getElementById("auth");
-const appDiv  = document.getElementById("app");
+/* TOGGLE LOGIN / SIGNUP */
+let signupMode=false;
+window.toggle=()=>{
+  signupMode=!signupMode;
+  title.innerText=signupMode?"Sign Up":"Login";
+  sub.innerText=signupMode?"Create your account":"Welcome back";
+  mainBtn.innerText=signupMode?"Sign Up":"Login";
+};
 
-// AUTH
-function signup(){
-  auth.createUserWithEmailAndPassword(email.value,password.value)
-    .then(()=>alert("Signup success 🎉"))
-    .catch(e=>alert(e.message));
-}
-
-function login(){
-  auth.signInWithEmailAndPassword(email.value,password.value)
-    .catch(e=>alert(e.message));
-}
-
-function logout(){
-  auth.signOut();
-}
-
-auth.onAuthStateChanged(user=>{
-  if(user){
-    authDiv.classList.add("hidden");
-    appDiv.classList.remove("hidden");
+/* AUTH */
+window.login=()=>{
+  if(signupMode){
+    createUserWithEmailAndPassword(auth,email.value,password.value)
+    .catch(e=>error.innerText=e.message);
   }else{
-    authDiv.classList.remove("hidden");
-    appDiv.classList.add("hidden");
+    signInWithEmailAndPassword(auth,email.value,password.value)
+    .catch(e=>error.innerText=e.message);
   }
+};
+
+window.logout=()=>signOut(auth);
+
+/* AUTH STATE */
+onAuthStateChanged(auth,user=>{
+  authDiv.classList.toggle("hidden",!!user);
+  appDiv.classList.toggle("hidden",!user);
 });
 
-// APP LOGIC
+/* APP LOGIC */
 const hooks={
-  school:["teacher paatha udane silent 😅","exam hall tension 😳"],
-  office:["boss paatha udane shock 😳","meeting mute drama 😅"],
-  friends:["group chat chaos 🤣","bestie roast mode 🔥"],
-  family:["amma reaction priceless 😂","appa strict look 😅"],
-  trending:["ithu ippo full trend 🔥"]
+  school:["Teacher paatha udane silent 😅"],
+  office:["Boss paatha shock 😳"],
+  friends:["Group chat chaos 🤣"]
 };
 
-function generate(){
-  const t=topic.value;
-  if(!t){alert("Topic select pannunga");return;}
-  const h=hooks[t][Math.floor(Math.random()*hooks[t].length)];
-  title.innerText=t.toUpperCase()+" – "+h;
-  tags.innerText="#TamilShorts #Comedy #Viral";
-  desc.innerText="🔥 Viral Tamil Shorts content\n"+tags.innerText;
-}
+window.generate=()=>{
+  if(!topic.value){alert("Topic select pannunga");return;}
+  result.innerText=hooks[topic.value][0];
+};
+
+const authDiv=document.getElementById("auth");
+const appDiv=document.getElementById("app");
 </script>
 
 </body>
