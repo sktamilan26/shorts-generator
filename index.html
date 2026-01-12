@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Shorts Generator SaaS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Firebase (COMPAT – stable) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:linear-gradient(135deg,#020617,#0f172a);
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+.card{
+  width:420px;
+  background:#020617;
+  padding:22px;
+  border-radius:18px;
+  box-shadow:0 20px 40px rgba(0,0,0,.6);
+}
+h2{margin:0 0 10px}
+p{color:#94a3b8;font-size:13px}
+input,select,button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
+  border:none;
+  font-size:15px;
+}
+input,select{
+  background:#020617;
+  border:1px solid #1e293b;
+  color:white;
+}
+button{
+  background:#22c55e;
+  font-weight:800;
+  cursor:pointer;
+}
+button.alt{
+  background:transparent;
+  border:1px solid #22c55e;
+  color:#22c55e;
+}
+.hidden{display:none}
+.out{
+  background:#020617;
+  padding:12px;
+  border-radius:12px;
+  margin-top:12px;
+  border:1px solid #1e293b;
+}
+.badge{
+  background:#22c55e;
+  color:black;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:12px;
+  display:inline-block;
+}
+</style>
+</head>
+
+<body>
+
+<!-- AUTH -->
+<div class="card" id="auth">
+<span class="badge">Free • Premium Ready</span>
+<h2>🔐 Login / Signup</h2>
+<p>Create account to generate viral Shorts</p>
+
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="signup()">Create Account</button>
+<button class="alt" onclick="login()">Login</button>
+</div>
+
+<!-- APP -->
+<div class="card hidden" id="app">
+<span class="badge">🎬 Generator</span>
+<h2>YouTube Shorts</h2>
+
+<select id="topic">
+<option value="">Select Topic</option>
+<option value="school">School Meme</option>
+<option value="office">Office Life</option>
+<option value="friends">Friends Group</option>
+<option value="family">Family Comedy</option>
+<option value="trending">Trending Meme</option>
+</select>
+
+<button onclick="generate()">Generate</button>
+
+<div class="out">
+<p id="title">—</p>
+<p id="tags">—</p>
+<p id="desc">—</p>
+</div>
+
+<button class="alt" onclick="logout()">Logout</button>
+</div>
+
+<script>
+/* ✅ REPLACE WITH YOUR REAL FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  appId: "YOUR_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+const authDiv = document.getElementById("auth");
+const appDiv  = document.getElementById("app");
+
+// AUTH
+function signup(){
+  auth.createUserWithEmailAndPassword(email.value,password.value)
+    .then(()=>alert("Signup success 🎉"))
+    .catch(e=>alert(e.message));
+}
+
+function login(){
+  auth.signInWithEmailAndPassword(email.value,password.value)
+    .catch(e=>alert(e.message));
+}
+
+function logout(){
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    authDiv.classList.add("hidden");
+    appDiv.classList.remove("hidden");
+  }else{
+    authDiv.classList.remove("hidden");
+    appDiv.classList.add("hidden");
+  }
+});
+
+// APP LOGIC
+const hooks={
+  school:["teacher paatha udane silent 😅","exam hall tension 😳"],
+  office:["boss paatha udane shock 😳","meeting mute drama 😅"],
+  friends:["group chat chaos 🤣","bestie roast mode 🔥"],
+  family:["amma reaction priceless 😂","appa strict look 😅"],
+  trending:["ithu ippo full trend 🔥"]
+};
+
+function generate(){
+  const t=topic.value;
+  if(!t){alert("Topic select pannunga");return;}
+  const h=hooks[t][Math.floor(Math.random()*hooks[t].length)];
+  title.innerText=t.toUpperCase()+" – "+h;
+  tags.innerText="#TamilShorts #Comedy #Viral";
+  desc.innerText="🔥 Viral Tamil Shorts content\n"+tags.innerText;
+}
+</script>
+
+</body>
+</html>
